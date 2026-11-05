@@ -1,0 +1,27 @@
+/* Additions for the Next.js version (links styled as buttons, form errors, loading states) */
+a.btn, a.role-btn, a.type-card, a.link, .tabs a { text-decoration: none; }
+a.type-card { color: inherit; }
+a.btn { display: inline-block; text-align: center; }
+.tabs a {
+  background: #fff; color: var(--orange); border: 1.5px solid var(--line);
+  border-radius: 999px; padding: 8px 18px; font-size: 12px; font-weight: 600; text-transform: uppercase;
+}
+.tabs a.active { background: var(--grad); color: #fff; border-color: transparent; }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: .55; cursor: not-allowed; box-shadow: none; }
+
+.form-error { background: #fff0ec; color: #c62d10; border: 1.5px solid #ffb8a6; border-radius: 12px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; text-align: left; }
+.login-card .form-error { background: #fff; }
+.modal .form-error { margin-top: 10px; }
+
+.loading { display: grid; place-items: center; gap: 12px; min-height: 50vh; color: var(--muted); font-size: 14px; }
+.spinner { width: 34px; height: 34px; border-radius: 50%; border: 4px solid var(--peach); border-top-color: var(--orange); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+
+.topbar .logout-form { display: inline; }
+.sync-note { font-size: 11px; color: var(--muted); text-align: center; }
+.not-found { min-height: 70vh; display: grid; place-items: center; text-align: center; padding: 24px; gap: 10px; }
+
+@media (max-width: 600px) {
+  .tabs a { flex-shrink: 0; padding: 8px 14px; font-size: 11px; }
+}

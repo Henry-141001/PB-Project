@@ -7,9 +7,9 @@ import { useUI } from "@/components/ui";
 import { applyScore, BEST_OF, hasStarted, setsWon, TARGETS, type ScoreAction, type ScoreResult } from "@/lib/scoring";
 import type { MatchState, Side } from "@/lib/tournament";
 
-type Props = { matchId: string; title: string; a: string[]; b: string[]; initial: MatchState; umpireCode: string | null; backHref: string | null };
+type Props = { tournamentId: string; matchId: string; title: string; a: string[]; b: string[]; initial: MatchState; umpireCode: string | null; backHref: string | null };
 
-export function Scoreboard({ matchId, title, a, b, initial, umpireCode, backHref }: Props) {
+export function Scoreboard({ tournamentId, matchId, title, a, b, initial, umpireCode, backHref }: Props) {
   const { toast, confirm } = useUI();
   const [st, setSt] = useState<MatchState>(initial);
   const [bumped, setBumped] = useState<Side | null>(null);
@@ -40,7 +40,7 @@ export function Scoreboard({ matchId, title, a, b, initial, umpireCode, backHref
     pendingCount.current++;
     queue.current = queue.current.then(async () => {
       try {
-        const r = await scoreMatch(matchId, action);
+        const r = await scoreMatch(tournamentId, matchId, action);
         // Only take the server's state once every queued tap is saved, so fast tapping never flickers back
         if (--pendingCount.current === 0 && r.state) setSt(r.state);
         if (r.error) toast(r.error);
@@ -49,7 +49,7 @@ export function Scoreboard({ matchId, title, a, b, initial, umpireCode, backHref
         toast("Couldn't save. Check your connection; the last point may not be saved.");
       }
     });
-  }, [st, matchId, confirm, toast, announce]);
+  }, [st, tournamentId, matchId, confirm, toast, announce]);
 
   // Keyboard shortcuts: A / L add points, U undo
   useEffect(() => {

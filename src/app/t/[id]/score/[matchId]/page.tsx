@@ -1,8 +1,6 @@
-import { and, eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Loading, Topbar, TopbarSkeleton } from "@/components/common";
-import { db, schema } from "@/db";
 import { currentUser, loadTournament, toMatchLite, toTData } from "@/lib/dal";
 import { initialState } from "@/lib/scoring";
 import { getSession } from "@/lib/session";
@@ -23,22 +21,22 @@ async function Score({ params }: { params: PageProps<"/t/[id]/score/[matchId]">[
   const isUmpire = session?.kind === "umpire";
   let who: { name: string; role: string };
 
+  let ownerId: string | null = null;
   if (isUmpire) {
     // An umpire code only opens its own match
-    if (session.matchId !== matchId) redirect(`/t/${session.tournamentId}/score/${session.matchId}`);
+    if (session.matchId !== matchId || session.tournamentId !== id) redirect(`/t/${session.tournamentId}/score/${session.matchId}`);
     who = { name: "Umpire", role: "Umpire" };
   } else {
     const user = await currentUser();
     if (!user) redirect("/login");
-    const [own] = await db.select({ id: schema.tournaments.id }).from(schema.tournaments)
-      .where(and(eq(schema.tournaments.id, id), eq(schema.tournaments.ownerId, user.id)));
-    if (!own) notFound();
+    ownerId = user.id;
     who = { name: user.name, role: user.role };
   }
 
   const data = await loadTournament(id);
   const match = data?.matches.find((m) => m.id === matchId);
   if (!data || !match) notFound();
+  if (ownerId && data.t.ownerId !== ownerId) notFound(); // only the organizer, besides the umpire
   const info = matchInfo(toTData(data.t, data.teams, data.matches), toMatchLite(match, false));
   const back = isUmpire ? undefined : `/t/${id}/matches`;
 
@@ -61,6 +59,7 @@ async function Score({ params }: { params: PageProps<"/t/[id]/score/[matchId]">[
     <>
       <Topbar name={who.name} role={who.role} back={back} umpire={isUmpire} />
       <Scoreboard
+        tournamentId={id}
         matchId={match.id}
         title={`${data.t.name} · M${match.no} ${match.label}`}
         a={players(info.A.id)}

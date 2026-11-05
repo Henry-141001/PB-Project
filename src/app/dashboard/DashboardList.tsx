@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { deleteTournament, joinTournament, leaveTournament, previewJoin, type JoinPreview } from "@/app/actions/tournaments";
 import { Logo } from "@/components/common";
@@ -15,14 +14,26 @@ export type CardData = {
   myTeam?: string; // player only
 };
 
-export function DashboardList({ isOrg, tab, cards, userName }: { isOrg: boolean; tab: TournamentType; cards: CardData[]; userName: string }) {
+export function DashboardList({ isOrg, initialTab, cards, userName }: { isOrg: boolean; initialTab: TournamentType; cards: CardData[]; userName: string }) {
+  const [tab, setTab] = useState(initialTab);
   const [q, setQ] = useState("");
-  const shown = cards.filter((c) => c.name.toLowerCase().includes(q.trim().toLowerCase()));
+  // Switch tabs in the browser only (instant); the URL still updates so refresh/back keep the tab
+  const pickTab = (k: TournamentType) => {
+    setTab(k);
+    window.history.replaceState(null, "", `/dashboard?tab=${k}`);
+  };
+  const shown = cards.filter((c) => c.type === tab && c.name.toLowerCase().includes(q.trim().toLowerCase()));
   return (
+    <>
+    <nav className="tabs" aria-label="Tournament type">
+      {(Object.entries(TYPES) as [TournamentType, string][]).map(([k, v]) => (
+        <button key={k} type="button" className={k === tab ? "active" : ""} aria-pressed={k === tab} onClick={() => pickTab(k)}>{v}</button>
+      ))}
+    </nav>
     <section className="panel">
       <div className="toolbar">
         <input className="input search" placeholder="Search Tournament Name" aria-label="Search tournament name" value={q} onChange={(e) => setQ(e.target.value)} />
-        {isOrg ? <Link className="btn btn-red" href={`/create?type=${tab}`}>CREATE TOURNAMENT</Link> : <JoinBar userName={userName} />}
+        {isOrg ? <Link className="btn btn-red" href={`/create?type=${tab}`}>CREATE TOURNAMENT</Link> : <JoinBar userName={userName} onJoined={pickTab} />}
       </div>
       {shown.length ? shown.map((c) => <Card key={c.id} c={c} isOrg={isOrg} />) : (
         <div className="empty">
@@ -32,6 +43,7 @@ export function DashboardList({ isOrg, tab, cards, userName }: { isOrg: boolean;
         </div>
       )}
     </section>
+    </>
   );
 }
 
@@ -87,8 +99,7 @@ function Card({ c, isOrg }: { c: CardData; isOrg: boolean }) {
   );
 }
 
-function JoinBar({ userName }: { userName: string }) {
-  const router = useRouter();
+function JoinBar({ userName, onJoined }: { userName: string; onJoined: (type: TournamentType) => void }) {
   const { toast } = useUI();
   const [code, setCode] = useState("");
   const [preview, setPreview] = useState<JoinPreview["tournament"] | null>(null);
@@ -114,7 +125,7 @@ function JoinBar({ userName }: { userName: string }) {
       if (r.error) return setError(r.error);
       setPreview(null); setCode("");
       toast(`Joined ${r.name}! The organizer can see your team now.`);
-      router.push(`/dashboard?tab=${r.type}`);
+      if (r.type) onJoined(r.type); // the list itself refreshes from the server action
     });
   };
 

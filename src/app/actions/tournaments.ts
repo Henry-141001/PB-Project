@@ -86,10 +86,12 @@ async function findJoinable(rawCode: string, userId: string) {
   if (code.length !== 6) return { error: "A tournament code has 6 letters or numbers." };
   const [t] = await db.select().from(schema.tournaments).where(eq(schema.tournaments.code, code));
   if (!t) return { error: `No tournament found with code ${code}.` };
-  const [mine] = await db.select({ id: schema.teams.id }).from(schema.teams).where(and(eq(schema.teams.tournamentId, t.id), eq(schema.teams.ownerId, userId)));
+  const [[mine], [{ n }]] = await Promise.all([
+    db.select({ id: schema.teams.id }).from(schema.teams).where(and(eq(schema.teams.tournamentId, t.id), eq(schema.teams.ownerId, userId))),
+    db.select({ n: count() }).from(schema.teams).where(eq(schema.teams.tournamentId, t.id)),
+  ]);
   if (mine) return { error: `You already joined ${t.name}.` };
   if (t.generated) return { error: "Registration is closed. The matches are already generated." };
-  const [{ n }] = await db.select({ n: count() }).from(schema.teams).where(eq(schema.teams.tournamentId, t.id));
   if (n >= t.maxTeams) return { error: "This tournament is full." };
   return { t, teams: n };
 }

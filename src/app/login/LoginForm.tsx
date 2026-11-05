@@ -28,7 +28,7 @@ export function LoginForm({ initialRole }: { initialRole: Role }) {
         {state?.error && <p className="form-error" role="alert">{state.error}</p>}
         <input className="input" name="phone" type="tel" placeholder="NUMBER PHONE" aria-label="Phone number" autoComplete="tel" defaultValue={state?.values?.phone} required />
         <input className="input" name="password" type="password" placeholder="PASSWORD" aria-label="Password" autoComplete="current-password" required />
-        <div className="row" style={{ justifyContent: "flex-end" }}>
+        <div className="row" style={{ justifyContent: "center" }}>
           <button className="btn btn-login" type="submit" disabled={pending}>{pending ? "…" : "LOGIN"}</button>
         </div>
         <div className="row" style={{ justifyContent: "center", marginTop: 14 }}>

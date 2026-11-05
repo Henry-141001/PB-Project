@@ -9,15 +9,13 @@ import type { MatchLite, Role, TData } from "./tournament";
 
 export type CurrentUser = { id: string; role: Role; name: string };
 
-/** The logged-in organizer or player, checked against the database (null if none). */
+/**
+ * The logged-in organizer or player (null if none), read from the signed session cookie.
+ * No database trip: the cookie can't be faked, and every action still checks ownership in the database.
+ */
 export async function currentUser(): Promise<CurrentUser | null> {
   const s = await getSession();
-  if (s?.kind !== "user") return null;
-  const [u] = await db
-    .select({ id: schema.users.id, role: schema.users.role, name: schema.users.name })
-    .from(schema.users)
-    .where(eq(schema.users.id, s.userId));
-  return u ?? null;
+  return s?.kind === "user" ? { id: s.userId, role: s.role, name: s.name } : null;
 }
 
 /** Like currentUser, but sends visitors to the right place when they can't be here. */
@@ -34,14 +32,14 @@ export type MatchRow = typeof schema.matches.$inferSelect;
 export type TeamRow = typeof schema.teams.$inferSelect;
 export type TournamentRow = typeof schema.tournaments.$inferSelect;
 
+// All three queries run at the same time, so a page waits for one database round trip, not three
 export async function loadTournament(id: string) {
-  const [t] = await db.select().from(schema.tournaments).where(eq(schema.tournaments.id, id));
-  if (!t) return null;
-  const [teams, matches] = await Promise.all([
+  const [[t], teams, matches] = await Promise.all([
+    db.select().from(schema.tournaments).where(eq(schema.tournaments.id, id)),
     db.select().from(schema.teams).where(eq(schema.teams.tournamentId, id)).orderBy(asc(schema.teams.createdAt), asc(schema.teams.id)),
     db.select().from(schema.matches).where(eq(schema.matches.tournamentId, id)).orderBy(asc(schema.matches.no)),
   ]);
-  return { t, teams, matches };
+  return t ? { t, teams, matches } : null;
 }
 
 export function toMatchLite(m: MatchRow, withCode: boolean): MatchLite {

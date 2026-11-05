@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db, schema } from "@/db";
-import { DEMO_PHONES } from "@/lib/demo";
 import { createSession, deleteSession } from "@/lib/session";
 import { cleanCode, type Role } from "@/lib/tournament";
 
@@ -43,14 +42,6 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
     return { error: "Wrong phone number or password.", values };
   }
   if (user.role !== role) return { error: `This account is registered as ${user.role}. Switch the toggle above.`, values };
-  await createSession({ kind: "user", userId: user.id, role: user.role, name: user.name });
-  redirect("/dashboard");
-}
-
-export async function demoLogin(role: Role): Promise<FormState> {
-  if (process.env.DEMO_LOGIN === "off") return { error: "Demo login is turned off." };
-  const [user] = await db.select().from(schema.users).where(eq(schema.users.phone, DEMO_PHONES[roleOf(role)]));
-  if (!user) return { error: "Demo accounts aren't set up yet. Run: npm run db:seed" };
   await createSession({ kind: "user", userId: user.id, role: user.role, name: user.name });
   redirect("/dashboard");
 }

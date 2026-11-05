@@ -1,5 +1,5 @@
 /**
- * Creates the demo accounts and sample tournaments used by "Try demo".
+ * Creates demo accounts and sample tournaments for testing and presentations.
  * Safe to run again: it deletes the previous demo data first.
  *   npm run db:seed
  * Demo logins (for testing only): phone 0100000001 (organizer) / 0100000002 (player), password demo1234
@@ -11,9 +11,9 @@ config();
 import bcrypt from "bcryptjs";
 import { inArray, like } from "drizzle-orm";
 import { db, schema } from "../src/db";
-import { DEMO_PHONES } from "../src/lib/demo";
 import { buildFixtures, makeCode, type MatchState, type MatchType, type Side, type TournamentType } from "../src/lib/tournament";
 
+const DEMO_PHONES = { Organizer: "0100000001", Player: "0100000002" };
 const DEMO_PASSWORD = "demo1234";
 const FILLER_PREFIX = "01999"; // phones of the extra players who "joined" the sample tournaments
 

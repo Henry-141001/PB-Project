@@ -1,24 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState, useTransition } from "react";
-import { demoLogin, login, umpireLogin } from "@/app/actions/auth";
+import { useActionState, useState } from "react";
+import { login, umpireLogin } from "@/app/actions/auth";
 import { Logo } from "@/components/common";
 import { CourtIcon, PaddlesIcon } from "@/components/icons";
 import { Modal } from "@/components/ui";
 import type { Role } from "@/lib/tournament";
 
-export function LoginForm({ initialRole, demo }: { initialRole: Role; demo: boolean }) {
+export function LoginForm({ initialRole }: { initialRole: Role }) {
   const [role, setRole] = useState<Role>(initialRole);
   const [state, action, pending] = useActionState(login, undefined);
-  const [demoError, setDemoError] = useState("");
-  const [demoPending, startDemo] = useTransition();
   const [umpireOpen, setUmpireOpen] = useState(false);
-
-  const tryDemo = () => startDemo(async () => {
-    const r = await demoLogin(role);
-    if (r?.error) setDemoError(r.error);
-  });
 
   return (
     <>
@@ -32,11 +25,10 @@ export function LoginForm({ initialRole, demo }: { initialRole: Role; demo: bool
           ))}
         </div>
         <input type="hidden" name="role" value={role} />
-        {(state?.error || demoError) && <p className="form-error" role="alert">{state?.error || demoError}</p>}
+        {state?.error && <p className="form-error" role="alert">{state.error}</p>}
         <input className="input" name="phone" type="tel" placeholder="NUMBER PHONE" aria-label="Phone number" autoComplete="tel" defaultValue={state?.values?.phone} required />
         <input className="input" name="password" type="password" placeholder="PASSWORD" aria-label="Password" autoComplete="current-password" required />
-        <div className="row">
-          {demo ? <button type="button" className="link" onClick={tryDemo} disabled={demoPending}>{demoPending ? "Opening demo…" : "Try demo"}</button> : <span />}
+        <div className="row" style={{ justifyContent: "flex-end" }}>
           <button className="btn btn-login" type="submit" disabled={pending}>{pending ? "…" : "LOGIN"}</button>
         </div>
         <div className="row" style={{ justifyContent: "center", marginTop: 14 }}>

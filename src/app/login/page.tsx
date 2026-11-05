@@ -21,5 +21,5 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
 async function Login({ searchParams }: { searchParams: PageProps<"/login">["searchParams"] }) {
   if (await currentUser()) redirect("/dashboard"); // already logged in
   const { role } = await searchParams;
-  return <LoginForm initialRole={role === "Organizer" ? "Organizer" : "Player"} demo={process.env.DEMO_LOGIN !== "off"} />;
+  return <LoginForm initialRole={role === "Organizer" ? "Organizer" : "Player"} />;
 }

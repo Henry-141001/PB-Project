@@ -16,7 +16,7 @@ npm run db:seed                    # demo accounts + sample tournaments (optiona
 npm run dev                        # open http://localhost:3000
 ```
 
-On the login page, **Try demo** logs in as the demo organizer or player (created by `db:seed`).
+`db:seed` creates a demo organizer and a demo player; their logins are in the comment at the top of `scripts/seed.ts`.
 
 ## Put it online (GitHub → Neon → Vercel)
 
@@ -46,7 +46,6 @@ git push -u origin main
 2. Under **Environment Variables** add:
    - `DATABASE_URL`: the Neon connection string
    - `AUTH_SECRET`: a new long random value (`node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`)
-   - `DEMO_LOGIN`: `on` while presenting, `off` for real use
 3. Click **Deploy**. Every `git push` to `main` updates the live site automatically.
 
 When you change `src/db/schema.ts`, run `npm run db:push` with the Neon `DATABASE_URL` to update the tables.
